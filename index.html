@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B2B 포인트 영업 대시보드</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --surface-2: #1a1a28;
+  --border: #2a2a3a;
+  --text: #e8e8f0;
+  --text-muted: #8888a0;
+  --accent: #ff3b5c;
+  --accent-glow: rgba(255,59,92,0.15);
+  --warning: #ffaa00;
+  --success: #00cc88;
+  --info: #5588ff;
+  --purple: #a855f7;
+  --danger-bg: rgba(255,59,92,0.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { font-size:14px; }
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 2rem 15%;
+}
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1.5rem;
+}
+.header h1 {
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+.header h1 span { color: var(--accent); }
+.header .date { color: var(--text-muted); font-size: 0.85rem; }
+
+.alert-banner {
+  background: linear-gradient(135deg, rgba(255,59,92,0.12), rgba(255,170,0,0.08));
+  border: 1px solid rgba(255,59,92,0.3);
+  border-radius: 12px;
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.alert-banner .icon { font-size: 2rem; }
+.alert-banner .content h3 { font-size: 1rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+.alert-banner .content p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+.alert-banner .content p strong { color: var(--text); }
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.2rem;
+}
+.kpi .label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
+.kpi .value { font-size: 1.6rem; font-weight: 900; }
+.kpi .sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem; }
+.view-btn {
+  background: var(--surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 0.4rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: all 0.15s;
+}
+.view-btn:first-child { border-radius: 6px 0 0 6px; }
+.view-btn:last-child { border-radius: 0 6px 6px 0; border-left: none; }
+.view-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.view-btn:not(.active):hover { background: var(--surface-2); color: var(--text); }
+
+/* 토스 스타일 비교 카드 */
+.compare-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.2rem;
+}
+.compare-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-bottom: 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.compare-body {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+.compare-col { flex: 1; }
+.compare-period {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-bottom: 0.2rem;
+  font-weight: 400;
+}
+.compare-val-prev {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: -0.5px;
+}
+.compare-val-curr {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+.compare-unit {
+  font-size: 0.65rem;
+  font-weight: 400;
+  margin-left: 1px;
+}
+.compare-arrow {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  opacity: 0.3;
+  flex-shrink: 0;
+  margin-bottom: 0.15rem;
+}
+.compare-badge {
+  flex-shrink: 0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.compare-badge.down {
+  background: rgba(85,136,255,0.12);
+  color: var(--info);
+}
+.compare-badge.up {
+  background: rgba(255,59,92,0.12);
+  color: var(--accent);
+}
+.compare-badge.flat {
+  background: rgba(136,136,160,0.12);
+  color: var(--text-muted);
+}
+.kpi.danger .value { color: var(--accent); }
+.kpi.warning .value { color: var(--warning); }
+.kpi.purple .value { color: var(--purple); }
+
+.insight-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.insight-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.2rem;
+}
+.insight-card h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.5rem; }
+.insight-card p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
+.insight-card .number { font-size: 1.8rem; font-weight: 900; color: var(--accent); margin: 0.5rem 0; }
+
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.tab {
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.badge {
+  background: var(--accent);
+  color: white;
+  font-size: 0.65rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-weight: 700;
+}
+.badge.warn { background: var(--warning); }
+.badge.purple { background: var(--purple); }
+.badge.gray { background: #555; }
+
+.company-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.company-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.company-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+.company-card .company-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+.company-card .company-name { font-weight: 700; font-size: 1rem; }
+.company-card .user-count { font-size: 0.75rem; color: var(--text-muted); }
+.company-card .stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+.company-card .stat { text-align: center; }
+.company-card .stat .stat-label { font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.2rem; }
+.company-card .stat .stat-value { font-size: 0.9rem; font-weight: 700; }
+.usage-bar-bg {
+  height: 4px;
+  background: var(--surface-2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.usage-bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+.usage-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+  display: flex;
+  justify-content: space-between;
+}
+.priority-tag {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.8rem;
+  font-size: 0.6rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  font-weight: 700;
+}
+.priority-tag.critical { background: rgba(255,59,92,0.2); color: var(--accent); }
+.priority-tag.high { background: rgba(255,170,0,0.2); color: var(--warning); }
+.priority-tag.medium { background: rgba(85,136,255,0.2); color: var(--info); }
+.priority-tag.no-points { background: rgba(136,136,160,0.15); color: var(--text-muted); }
+.priority-tag.coupon { background: rgba(168,85,247,0.2); color: var(--purple); }
+.priority-tag.ending { background: rgba(136,136,160,0.15); color: var(--text-muted); }
+
+.filter-bar {
+  display: flex;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.filter-bar input, .filter-bar select {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.filter-bar input { flex: 1; max-width: 300px; }
+.filter-bar input::placeholder { color: var(--text-muted); }
+.btn-csv {
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted);
+  padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.btn-csv:hover { border-color: var(--text); color: var(--text); }
+
+table { width: 100%; border-collapse: collapse; }
+th {
+  text-align: left;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+th:hover { color: var(--text); }
+td {
+  padding: 0.6rem 0.8rem;
+  font-size: 0.82rem;
+  border-bottom: 1px solid rgba(42,42,58,0.5);
+  white-space: nowrap;
+}
+tr:hover td { background: rgba(255,59,92,0.03); }
+tr.never-used td { background: var(--danger-bg); }
+tr.never-used td:first-child { border-left: 3px solid var(--accent); }
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 0.4rem;
+}
+.status-dot.active { background: var(--success); }
+.status-dot.dormant { background: var(--warning); }
+.status-dot.ghost { background: var(--accent); }
+
+.action-insight {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 10px;
+  padding: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+.action-insight h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.6rem; }
+.action-insight p { font-size: 0.8rem; color: var(--text-muted); line-height: 2; }
+.action-insight p strong { color: var(--text); }
+
+.ending-section {
+  margin-top: 1.5rem;
+  padding: 1.2rem;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: rgba(136,136,160,0.03);
+}
+
+@media (max-width: 900px) {
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+  .company-grid { grid-template-columns: 1fr; }
+  .insight-cards { grid-template-columns: 1fr; }
+  body { padding: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div style="display:flex;align-items:center;gap:1rem;">
+      <h1>B2B <span>포인트</span> 영업 대시보드</h1>
+      <div style="display:flex;gap:0;margin-left:0.5rem;">
+        <button class="view-btn active" id="btn-total" onclick="switchView('total')">전체 대시보드</button>
+        <button class="view-btn" id="btn-monthly" onclick="switchView('monthly')">월간 비교</button>
+      </div>
+    </div>
+    <div style="color:var(--text-muted);font-size:0.8rem;margin-top:0.3rem;">포인트를 받고도 쓰지 않는 사람들을 찾아 전환시키기</div>
+  </div>
+  <div class="date">데이터 로딩 중...</div>
+</div>
+
+<div id="view-total">
+<div class="alert-banner">
+  <div class="icon">&#9888;&#65039;</div>
+  <div class="content">
+    <h3>B2B 포인트 — 발급 대비 서비스 이용 현황</h3>
+    <p>활성 9개사 (포인트 6 + 쿠폰 3). 사용 집계는 B2B 회원의 <strong>전체 서비스 이용 금액</strong> 기준입니다. (B2B 포인트 외 마케팅 포인트 등 소액 포함)</p>
+    <p style="margin-top:0.4rem;font-size:0.78rem;color:var(--text-muted);">데이터 기간: 각 사용자의 <strong style="color:var(--text);">가입 시점 ~ 2026.03.27</strong> 누적 집계 (정적 스냅샷)</p>
+  </div>
+</div>
+
+<div class="kpi-grid" id="kpi-grid"></div>
+
+<div class="insight-cards" id="insight-cards"></div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('company')">회사별 현황</div>
+  <div class="tab" onclick="switchTab('users')">전체 사용자</div>
+  <div class="tab" onclick="switchTab('action')">영업 액션 리스트</div>
+</div>
+
+<div id="tab-company">
+  <div class="section-title">
+    포인트 발급 회사 현황
+    <span class="badge">잔액 높은 순</span>
+  </div>
+  <div class="company-grid" id="company-grid"></div>
+
+  <div class="section-title" style="margin-top:1.5rem;">
+    쿠폰 제휴사
+    <span class="badge purple">10% 할인 쿠폰</span>
+  </div>
+  <div class="company-grid" id="coupon-grid"></div>
+
+  <div class="ending-section">
+    <div class="section-title" style="border:none;padding:0;margin-bottom:0.5rem;">
+      종료 예정
+      <span class="badge gray">발급 중단</span>
+    </div>
+    <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.6;">신규 발급은 중지되었지만, 사용 기한이 남아있는 포인트/쿠폰이 있습니다. 기존 사용자에게 만료 전 사용을 안내해야 합니다.</div>
+    <div class="company-grid" id="ending-grid" style="margin-bottom:0"></div>
+  </div>
+</div>
+
+<div id="tab-users" style="display:none">
+  <div class="filter-bar">
+    <input type="text" id="search-input" placeholder="이름, 이메일, 회사명으로 검색..." oninput="filterUsers()">
+    <select id="filter-company" onchange="filterUsers()">
+      <option value="all">전체 회사</option>
+    </select>
+    <select id="filter-type" onchange="filterUsers()">
+      <option value="all">전체 혜택</option>
+      <option value="point">포인트</option>
+      <option value="coupon">쿠폰</option>
+    </select>
+    <select id="filter-status" onchange="filterUsers()">
+      <option value="all">전체 상태</option>
+      <option value="has-unused">혜택有 미사용</option>
+      <option value="ghost">유령 (6개월+)</option>
+    </select>
+    <button class="btn-csv" onclick="downloadCSV()">CSV 다운로드</button>
+  </div>
+  <div style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="sortTable('company_name')">회사</th>
+          <th onclick="sortTable('b2b_email')">이메일</th>
+          <th onclick="sortTable('user_name')">이름</th>
+          <th>혜택</th>
+          <th onclick="sortTable('benefit_value')" style="text-align:right">발급/보유</th>
+          <th style="text-align:right">사용</th>
+          <th style="text-align:right">사용률</th>
+          <th onclick="sortTable('last_signed_in')">마지막 로그인</th>
+          <th>상태</th>
+        </tr>
+      </thead>
+      <tbody id="user-table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="tab-action" style="display:none">
+  <div class="section-title">영업 우선순위 액션 리스트</div>
+
+  <div class="action-insight">
+    <h4>&#128269; 먼저 답해야 할 질문</h4>
+    <p>
+      1. <strong>포인트/쿠폰 존재를 알고 있는가?</strong> — 가입만 했지 혜택이 있는지 모를 수 있음<br>
+      2. <strong>사용 방법을 아는가?</strong> — 결제 시 자동 적용인지, 수동 선택인지<br>
+      3. <strong>쓸 만한 서비스가 있는가?</strong> — 원하는 선생님/서비스가 없어서 안 쓰는 건 아닌지<br>
+      4. <strong>포인트 만료 인지?</strong> — 만료 전 알림이 가고 있는지
+    </p>
+  </div>
+
+  <div class="section-title">Tier 1: 잠자는 큰 돈 (포인트) <span class="badge">최우선</span></div>
+  <table>
+    <thead>
+      <tr>
+        <th>회사</th><th>이메일</th><th>이름</th>
+        <th style="text-align:right">미사용 잔액</th>
+        <th>마지막 로그인</th><th>제안 액션</th>
+      </tr>
+    </thead>
+    <tbody id="action-table-body"></tbody>
+  </table>
+
+  <div class="section-title" style="margin-top:2rem;">Tier 2: 쿠폰 미사용 (활성 제휴사) <span class="badge purple">쿠폰</span></div>
+  <table>
+    <thead>
+      <tr>
+        <th>회사</th><th>이메일</th><th>이름</th>
+        <th style="text-align:right">쿠폰 보유</th>
+        <th>마지막 로그인</th><th>제안 액션</th>
+      </tr>
+    </thead>
+    <tbody id="coupon-action-body"></tbody>
+  </table>
+</div>
+
+<!-- 월별 사용량 차트 -->
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-top:2rem;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.8rem;">
+    <div>
+      <h3 style="font-size:1.1rem;font-weight:700;">최근 12개월 월별 추이</h3>
+      <p style="font-size:0.78rem;color:var(--text-muted);margin-top:0.2rem;">2025.04 ~ 2026.03 · 포인트 회사 6개사 · B2B 포인트만 집계 (point_detail 역추적) · 100% 초과 = 이전 달 잔액 소진</p>
+    </div>
+  </div>
+  <div id="chart-legend" style="display:flex;gap:1rem;margin-bottom:0.8rem;flex-wrap:wrap;font-size:0.8rem;"></div>
+  <div style="position:relative;">
+    <canvas id="chart-canvas" style="width:100%;"></canvas>
+    <div id="chart-tooltip" style="display:none;position:absolute;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.8rem;font-size:0.75rem;pointer-events:none;z-index:10;min-width:160px;"></div>
+  </div>
+</div>
+</div><!-- /view-total -->
+
+<!-- ── 월간 비교 대시보드 (목업) ── -->
+<div id="view-monthly" style="display:none;">
+
+  <!-- 월 선택 -->
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
+    <select id="month-select" style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:0.5rem 1rem;font-size:0.9rem;font-weight:500;">
+      <option value="2026-03" selected>2026년 3월</option>
+      <option value="2026-02">2026년 2월</option>
+      <option value="2026-01">2026년 1월</option>
+    </select>
+    <span style="color:var(--text-muted);font-size:0.8rem;">vs 전월 비교</span>
+  </div>
+
+  <!-- KPI 비교 카드 (토스 스타일) -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;">
+
+    <!-- 총 발급 -->
+    <div class="compare-card">
+      <div class="compare-label">총 발급</div>
+      <div class="compare-body">
+        <div class="compare-col">
+          <div class="compare-period">2월</div>
+          <div class="compare-val-prev mono">1,150<span class="compare-unit">만</span></div>
+        </div>
+        <div class="compare-arrow">→</div>
+        <div class="compare-col">
+          <div class="compare-period">3월</div>
+          <div class="compare-val-curr mono">1,184<span class="compare-unit">만</span></div>
+        </div>
+        <div class="compare-badge up">▲ 3.0%</div>
+      </div>
+    </div>
+
+    <!-- B2B 사용 -->
+    <div class="compare-card">
+      <div class="compare-label">B2B 포인트 사용</div>
+      <div class="compare-body">
+        <div class="compare-col">
+          <div class="compare-period">2월</div>
+          <div class="compare-val-prev mono">943<span class="compare-unit">만</span></div>
+        </div>
+        <div class="compare-arrow">→</div>
+        <div class="compare-col">
+          <div class="compare-period">3월</div>
+          <div class="compare-val-curr mono">743<span class="compare-unit">만</span></div>
+        </div>
+        <div class="compare-badge down">▼ 21.2%</div>
+      </div>
+    </div>
+
+    <!-- 평균 사용률 -->
+    <div class="compare-card">
+      <div class="compare-label">평균 사용률</div>
+      <div class="compare-body">
+        <div class="compare-col">
+          <div class="compare-period">2월</div>
+          <div class="compare-val-prev mono">81.9<span class="compare-unit">%</span></div>
+        </div>
+        <div class="compare-arrow">→</div>
+        <div class="compare-col">
+          <div class="compare-period">3월</div>
+          <div class="compare-val-curr mono">62.8<span class="compare-unit">%</span></div>
+        </div>
+        <div class="compare-badge down">▼ 19.1%p</div>
+      </div>
+    </div>
+
+    <!-- 활성 사용자 -->
+    <div class="compare-card">
+      <div class="compare-label">활성 사용자</div>
+      <div class="compare-body">
+        <div class="compare-col">
+          <div class="compare-period">2월</div>
+          <div class="compare-val-prev mono">26<span class="compare-unit">명</span></div>
+        </div>
+        <div class="compare-arrow">→</div>
+        <div class="compare-col">
+          <div class="compare-period">3월</div>
+          <div class="compare-val-curr mono">23<span class="compare-unit">명</span></div>
+        </div>
+        <div class="compare-badge down">▼ 3명</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 회사별 비교 테이블 -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;">회사별 전월 비교</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>회사</th>
+          <th style="text-align:right">전월 발급</th>
+          <th style="text-align:right">이번 달 발급</th>
+          <th style="text-align:right">변동</th>
+          <th style="text-align:right">전월 사용</th>
+          <th style="text-align:right">이번 달 사용</th>
+          <th style="text-align:right">변동</th>
+          <th style="text-align:right">전월 사용률</th>
+          <th style="text-align:right">이번 달 사용률</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>블리자드</strong></td>
+          <td style="text-align:right" class="mono">800만</td>
+          <td style="text-align:right" class="mono">800만</td>
+          <td style="text-align:right;color:var(--text-muted);">-</td>
+          <td style="text-align:right" class="mono">571만</td>
+          <td style="text-align:right" class="mono">626만</td>
+          <td style="text-align:right;color:var(--accent);">▲ 9.6%</td>
+          <td style="text-align:right" class="mono">71.4%</td>
+          <td style="text-align:right" class="mono">78.2%</td>
+        </tr>
+        <tr>
+          <td><strong>HMM</strong></td>
+          <td style="text-align:right" class="mono">150만</td>
+          <td style="text-align:right" class="mono">79만</td>
+          <td style="text-align:right;color:var(--info);">▼ 47.1%</td>
+          <td style="text-align:right" class="mono">338만</td>
+          <td style="text-align:right" class="mono">60만</td>
+          <td style="text-align:right;color:var(--info);">▼ 82.2%</td>
+          <td style="text-align:right" class="mono">225.3%</td>
+          <td style="text-align:right" class="mono">75.9%</td>
+        </tr>
+        <tr>
+          <td><strong>코니바이에린</strong></td>
+          <td style="text-align:right" class="mono">120만</td>
+          <td style="text-align:right" class="mono">210만</td>
+          <td style="text-align:right;color:var(--accent);">▲ 75.0%</td>
+          <td style="text-align:right" class="mono">14만</td>
+          <td style="text-align:right" class="mono">51만</td>
+          <td style="text-align:right;color:var(--accent);">▲ 280.7%</td>
+          <td style="text-align:right" class="mono">11.3%</td>
+          <td style="text-align:right" class="mono">24.5%</td>
+        </tr>
+        <tr>
+          <td><strong>HMM오션서비스</strong></td>
+          <td style="text-align:right" class="mono">15만</td>
+          <td style="text-align:right" class="mono">45만</td>
+          <td style="text-align:right;color:var(--accent);">▲ 200%</td>
+          <td style="text-align:right" class="mono">0</td>
+          <td style="text-align:right" class="mono">6만</td>
+          <td style="text-align:right;color:var(--accent);">▲ 신규</td>
+          <td style="text-align:right" class="mono">0%</td>
+          <td style="text-align:right" class="mono">13.6%</td>
+        </tr>
+        <tr>
+          <td><strong>HMM 해상</strong></td>
+          <td style="text-align:right" class="mono">15만</td>
+          <td style="text-align:right" class="mono">0</td>
+          <td style="text-align:right;color:var(--info);">▼ 100%</td>
+          <td style="text-align:right" class="mono">20만</td>
+          <td style="text-align:right" class="mono">0</td>
+          <td style="text-align:right;color:var(--info);">▼ 100%</td>
+          <td style="text-align:right" class="mono">135.3%</td>
+          <td style="text-align:right" class="mono">-</td>
+        </tr>
+        <tr style="color:var(--text-muted);">
+          <td><strong>블리자드 스튜디오</strong></td>
+          <td style="text-align:right" class="mono">50만</td>
+          <td style="text-align:right" class="mono">50만</td>
+          <td style="text-align:right">-</td>
+          <td style="text-align:right" class="mono">0</td>
+          <td style="text-align:right" class="mono">0</td>
+          <td style="text-align:right">-</td>
+          <td style="text-align:right" class="mono">0%</td>
+          <td style="text-align:right" class="mono">0%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 사용자 변동 하이라이트 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;">
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;color:var(--accent);">&#9650; 사용 증가 TOP 5</h3>
+      <table>
+        <thead><tr><th>회사</th><th>이름</th><th style="text-align:right">2월</th><th style="text-align:right">3월</th><th style="text-align:right">변동</th></tr></thead>
+        <tbody>
+          <tr><td>코니바이에린</td><td>김민경</td><td style="text-align:right" class="mono">0</td><td style="text-align:right" class="mono">24.9만</td><td style="text-align:right;color:var(--accent);">신규</td></tr>
+          <tr><td>블리자드</td><td>김은중</td><td style="text-align:right" class="mono">20.5만</td><td style="text-align:right" class="mono">36.9만</td><td style="text-align:right;color:var(--accent);">▲ 80%</td></tr>
+          <tr><td>블리자드</td><td>권병우</td><td style="text-align:right" class="mono">34.8만</td><td style="text-align:right" class="mono">50만</td><td style="text-align:right;color:var(--accent);">▲ 44%</td></tr>
+          <tr><td>코니바이에린</td><td>아라</td><td style="text-align:right" class="mono">0</td><td style="text-align:right" class="mono">14.1만</td><td style="text-align:right;color:var(--accent);">신규</td></tr>
+          <tr><td>블리자드</td><td>박소연</td><td style="text-align:right" class="mono">26.8만</td><td style="text-align:right" class="mono">34만</td><td style="text-align:right;color:var(--accent);">▲ 27%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;">
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;color:var(--info);">&#9660; 사용 감소 / 이탈 위험</h3>
+      <table>
+        <thead><tr><th>회사</th><th>이름</th><th style="text-align:right">2월</th><th style="text-align:right">3월</th><th style="text-align:right">변동</th></tr></thead>
+        <tbody>
+          <tr><td>HMM</td><td>차민경</td><td style="text-align:right" class="mono">122.8만</td><td style="text-align:right" class="mono">0</td><td style="text-align:right;color:var(--info);">이탈</td></tr>
+          <tr><td>HMM</td><td>허은정</td><td style="text-align:right" class="mono">74만</td><td style="text-align:right" class="mono">15.6만</td><td style="text-align:right;color:var(--info);">▼ 79%</td></tr>
+          <tr><td>HMM</td><td>임미정</td><td style="text-align:right" class="mono">47.2만</td><td style="text-align:right" class="mono">0</td><td style="text-align:right;color:var(--info);">이탈</td></tr>
+          <tr><td>HMM 해상</td><td>해상1</td><td style="text-align:right" class="mono">20.3만</td><td style="text-align:right" class="mono">0</td><td style="text-align:right;color:var(--info);">이탈</td></tr>
+          <tr><td>HMM</td><td>이인환</td><td style="text-align:right" class="mono">14.9만</td><td style="text-align:right" class="mono">0</td><td style="text-align:right;color:var(--info);">이탈</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 쿠폰 회사 월간 비교 -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;">쿠폰 제휴사 월간 비교</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>회사</th>
+          <th style="text-align:right">전월 신규등록</th>
+          <th style="text-align:right">이번 달 신규등록</th>
+          <th style="text-align:right">전월 사용</th>
+          <th style="text-align:right">이번 달 사용</th>
+          <th style="text-align:right">변동</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>신용보증기금</strong></td>
+          <td style="text-align:right" class="mono">5명</td>
+          <td style="text-align:right" class="mono">3명</td>
+          <td style="text-align:right" class="mono">0건</td>
+          <td style="text-align:right" class="mono">0건</td>
+          <td style="text-align:right;color:var(--info);">▼ 등록 감소</td>
+        </tr>
+        <tr>
+          <td><strong>CJ 제휴사</strong></td>
+          <td style="text-align:right" class="mono">11명</td>
+          <td style="text-align:right" class="mono">7명</td>
+          <td style="text-align:right" class="mono">0건</td>
+          <td style="text-align:right" class="mono">1건</td>
+          <td style="text-align:right;color:var(--accent);">▲ 사용 발생</td>
+        </tr>
+        <tr>
+          <td><strong>SK가스</strong></td>
+          <td style="text-align:right" class="mono">2명</td>
+          <td style="text-align:right" class="mono">2명</td>
+          <td style="text-align:right" class="mono">0건</td>
+          <td style="text-align:right" class="mono">0건</td>
+          <td style="text-align:right;color:var(--text-muted);">-</td>
+        </tr>
+        <tr>
+          <td><strong>두산</strong></td>
+          <td style="text-align:right" class="mono">5명</td>
+          <td style="text-align:right" class="mono">2명</td>
+          <td style="text-align:right" class="mono">3건</td>
+          <td style="text-align:right" class="mono">3건</td>
+          <td style="text-align:right;color:var(--accent);">▲ 사용 활발</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /view-monthly -->
+
+<script>
+// ── 뷰 전환 ──
+function switchView(view) {
+  document.getElementById('view-total').style.display = view === 'total' ? '' : 'none';
+  document.getElementById('view-monthly').style.display = view === 'monthly' ? '' : 'none';
+  document.getElementById('btn-total').classList.toggle('active', view === 'total');
+  document.getElementById('btn-monthly').classList.toggle('active', view === 'monthly');
+  if(view === 'total' && typeof renderChart === 'function') renderChart();
+}
+
+// ── API 설정 ──
+const API_URL = 'https://siahn.app.n8n.cloud/webhook/b2b-dashboard-data';
+
+// ── 포인트 사용자 (활성 6개사) — 폴백 데이터 ──
+const pointUsers = [
+  {company_name:"블리자드",b2b_email:"byungwoo.kwon@blizzard.com",user_name:"권병우",total_issued:42000000,total_used:28267410,last_signed_in:"2026-02-04"},
+  {company_name:"블리자드",b2b_email:"claire.pak@blizzard.com",user_name:"박소연",total_issued:35600000,total_used:21920090,last_signed_in:"2026-03-16"},
+  {company_name:"블리자드",b2b_email:"yoora.oh@blizzard.com",user_name:"오유라",total_issued:35400000,total_used:37436800,last_signed_in:"2026-03-17"},
+  {company_name:"블리자드",b2b_email:"kyueun.lee@blizzard.com",user_name:"이규은",total_issued:32046000,total_used:29482320,last_signed_in:"2025-08-10"},
+  {company_name:"블리자드",b2b_email:"bohkim@blizzard.com",user_name:"김보희",total_issued:29050000,total_used:21971634,last_signed_in:"2026-03-23"},
+  {company_name:"블리자드",b2b_email:"jongwon.lee@blizzard.com",user_name:"이종원",total_issued:23000000,total_used:16861500,last_signed_in:"2026-02-22"},
+  {company_name:"블리자드",b2b_email:"dorothy.kang@blizzard.com",user_name:"강경숙",total_issued:23000000,total_used:8394500,last_signed_in:"2026-01-26"},
+  {company_name:"블리자드",b2b_email:"hyunjung.hong@blizzard.com",user_name:"홍현정",total_issued:23000000,total_used:20497000,last_signed_in:"2026-03-10"},
+  {company_name:"블리자드",b2b_email:"minwoo.kim@blizzard.com",user_name:"김민우",total_issued:23000000,total_used:18159390,last_signed_in:"2026-02-19"},
+  {company_name:"블리자드",b2b_email:"byungkwan.chung@blizzard.com",user_name:"정병관",total_issued:22500000,total_used:22568230,last_signed_in:"2026-03-04"},
+  {company_name:"블리자드",b2b_email:"seunghyun.kim@blizzard.com",user_name:"김승현",total_issued:22500000,total_used:23938910,last_signed_in:"2026-03-20"},
+  {company_name:"블리자드",b2b_email:"antony.han@blizzard.com",user_name:"한종훈",total_issued:21500000,total_used:21467850,last_signed_in:"2026-03-24"},
+  {company_name:"블리자드",b2b_email:"eunjoong.kim@blizzard.com",user_name:"김은중",total_issued:19500000,total_used:12936600,last_signed_in:"2026-03-23"},
+  {company_name:"블리자드",b2b_email:"joonbin.lee@blizzard.com",user_name:"이준빈",total_issued:19500000,total_used:19341370,last_signed_in:"2025-07-06"},
+  {company_name:"블리자드",b2b_email:"jeahn@blizzard.com",user_name:"안정연",total_issued:19180000,total_used:19563530,last_signed_in:"2026-03-23"},
+  {company_name:"블리자드",b2b_email:"minsung.song@blizzard.com",user_name:"송민성",total_issued:19000000,total_used:18937500,last_signed_in:"2025-08-24"},
+  {company_name:"블리자드",b2b_email:"jon.tae@blizzard.com",user_name:"태현준",total_issued:15000000,total_used:11481320,last_signed_in:"2025-03-25"},
+  {company_name:"블리자드",b2b_email:"Jaeyeon.kim@blizzard.com",user_name:"김재연",total_issued:9710000,total_used:8054500,last_signed_in:"2026-03-24"},
+  {company_name:"블리자드",b2b_email:"june.kim@blizzard.com",user_name:"김준",total_issued:5000000,total_used:4454000,last_signed_in:"2026-03-18"},
+  {company_name:"블리자드",b2b_email:"bumsuk.youn@blizzard.com",user_name:"윤범석",total_issued:1500000,total_used:1632000,last_signed_in:"2026-03-21"},
+  {company_name:"블리자드 스튜디오",b2b_email:"sunjung@blizzard.com",user_name:"선정",total_issued:10500000,total_used:0,last_signed_in:"2024-07-15"},
+  {company_name:"HMM",b2b_email:"ej.heo@hmm21.com",user_name:"허은정",total_issued:4124000,total_used:4046000,last_signed_in:"2026-03-20"},
+  {company_name:"HMM",b2b_email:"youngtaek.jo@hmm21.com",user_name:"조영택",total_issued:4011000,total_used:3672000,last_signed_in:"2026-02-16"},
+  {company_name:"HMM",b2b_email:"cannera.shin@hmm21.com",user_name:"신캐네라",total_issued:3989000,total_used:3633500,last_signed_in:"2026-03-18"},
+  {company_name:"HMM",b2b_email:"nari.lee@hmm21.com",user_name:"이나리",total_issued:3918000,total_used:3971000,last_signed_in:"2025-03-14"},
+  {company_name:"HMM",b2b_email:"ih.lee@hmm21.com",user_name:"이인환",total_issued:3875000,total_used:4873000,last_signed_in:"2026-03-25"},
+  {company_name:"HMM",b2b_email:"jt.jeon@hmm21.com",user_name:"전정태",total_issued:3750000,total_used:3799500,last_signed_in:"2026-03-22"},
+  {company_name:"HMM",b2b_email:"mj.lim@hmm21.com",user_name:"임미정",total_issued:3673500,total_used:3963500,last_signed_in:"2026-01-26"},
+  {company_name:"HMM",b2b_email:"mg.cha@hmm21.com",user_name:"차민경",total_issued:3600000,total_used:3622000,last_signed_in:"2026-03-05"},
+  {company_name:"HMM",b2b_email:"kyu.kim@hmm21.com",user_name:"김규",total_issued:3404000,total_used:657000,last_signed_in:"2025-03-27"},
+  {company_name:"HMM",b2b_email:"r.lee@hmm21.com",user_name:"이R",total_issued:3300000,total_used:0,last_signed_in:"2024-12-20"},
+  {company_name:"HMM",b2b_email:"jungsik@hmm21.com",user_name:"정식",total_issued:3177000,total_used:621000,last_signed_in:"2024-10-14"},
+  {company_name:"HMM",b2b_email:"kj.kim@hmm21.com",user_name:"김경재",total_issued:2996000,total_used:494000,last_signed_in:"2025-03-17"},
+  {company_name:"HMM",b2b_email:"tristan.ha@hmm21.com",user_name:"하트리스탄",total_issued:2639500,total_used:1201000,last_signed_in:"2025-06-25"},
+  {company_name:"HMM",b2b_email:"hyojun.lee@hmm21.com",user_name:"이효준",total_issued:2302000,total_used:2245000,last_signed_in:"2025-06-04"},
+  {company_name:"HMM",b2b_email:"hwy@hmm21.com",user_name:"HWY",total_issued:1950000,total_used:4608000,last_signed_in:"2026-03-22"},
+  {company_name:"HMM",b2b_email:"msk@hmm21.com",user_name:"MSK",total_issued:1933000,total_used:2232000,last_signed_in:"2025-03-02"},
+  {company_name:"HMM",b2b_email:"jiun.kang@hmm21.com",user_name:"강지운",total_issued:1800000,total_used:0,last_signed_in:"2024-02-20"},
+
+  {company_name:"HMM",b2b_email:"mj.kang@hmm21.com",user_name:"강민재",total_issued:1234500,total_used:1167500,last_signed_in:"2024-09-22"},
+  {company_name:"HMM",b2b_email:"jmkang@hmm21.com",user_name:"강정민",total_issued:1050000,total_used:1051000,last_signed_in:"2026-03-25"},
+  {company_name:"HMM",b2b_email:"kangbs@hmm21.com",user_name:"강병수",total_issued:600000,total_used:485000,last_signed_in:"2026-03-25"},
+  {company_name:"코니바이에린",b2b_email:"erang@konnybaby.com",user_name:"에랑",total_issued:7800000,total_used:4350500,last_signed_in:"2026-01-14"},
+  {company_name:"코니바이에린",b2b_email:"hanah@konnybaby.com",user_name:"하나",total_issued:4050000,total_used:814000,last_signed_in:"2025-07-29"},
+  {company_name:"코니바이에린",b2b_email:"arielymi@konnybaby.com",user_name:"아리엘",total_issued:3900000,total_used:2269000,last_signed_in:"2025-11-27"},
+  {company_name:"코니바이에린",b2b_email:"jinyoung@konnybaby.com",user_name:"진영",total_issued:3750000,total_used:281000,last_signed_in:"2025-07-23"},
+  {company_name:"코니바이에린",b2b_email:"kanghyun@konnybaby.com",user_name:"강현",total_issued:3750000,total_used:1103500,last_signed_in:"2026-02-11"},
+  {company_name:"코니바이에린",b2b_email:"shinae@konnybaby.com",user_name:"신애",total_issued:3600000,total_used:1677500,last_signed_in:"2025-05-19"},
+  {company_name:"코니바이에린",b2b_email:"hrhan@konnybaby.com",user_name:"한해란",total_issued:3600000,total_used:977000,last_signed_in:"2025-05-24"},
+  {company_name:"코니바이에린",b2b_email:"goeun@konnybaby.com",user_name:"고은",total_issued:3000000,total_used:998450,last_signed_in:"2024-06-28"},
+  {company_name:"코니바이에린",b2b_email:"jihyean@konnybaby.com",user_name:"지현",total_issued:1950000,total_used:0,last_signed_in:"2025-08-06"},
+  {company_name:"코니바이에린",b2b_email:"mihyung@konnybaby.com",user_name:"미형",total_issued:1800000,total_used:1348500,last_signed_in:"2025-11-23"},
+  {company_name:"코니바이에린",b2b_email:"seunghee@konnybaby.com",user_name:"승희",total_issued:1500000,total_used:1152000,last_signed_in:"2026-03-14"},
+  {company_name:"코니바이에린",b2b_email:"sooyoun@konnybaby.com",user_name:"수연",total_issued:900000,total_used:194000,last_signed_in:"2026-03-25"},
+  {company_name:"코니바이에린",b2b_email:"kaelyn.mun@konnybaby.com",user_name:"케일린",total_issued:300000,total_used:0,last_signed_in:"2026-03-12"},
+  {company_name:"코니바이에린",b2b_email:"ara@konnybaby.com",user_name:"아라",total_issued:150000,total_used:196000,last_signed_in:"2026-03-25"},
+  {company_name:"코니바이에린",b2b_email:"mkkim@konnybaby.com",user_name:"김민경",total_issued:150000,total_used:221000,last_signed_in:"2026-03-18"},
+  {company_name:"코니바이에린",b2b_email:"ehlee@konnybaby.com",user_name:"이은혜",total_issued:150000,total_used:0,last_signed_in:"2026-03-16"},
+  {company_name:"코니바이에린",b2b_email:"saeeun.chang@konnybaby.com",user_name:"장세은",total_issued:0,total_used:0,last_signed_in:"2026-03-16"},
+  {company_name:"HMM오션서비스",b2b_email:"sehoun.yim@hos21.com",user_name:"임세훈",total_issued:5100000,total_used:0,last_signed_in:"2026-03-11"},
+  {company_name:"HMM오션서비스",b2b_email:"bj.woo@hos21.com",user_name:"우병준",total_issued:150000,total_used:0,last_signed_in:"2026-02-24"},
+  {company_name:"HMM오션서비스",b2b_email:"sk.lim@hos21.com",user_name:"임석규",total_issued:150000,total_used:61000,last_signed_in:"2026-03-02"},
+  {company_name:"HMM오션서비스",b2b_email:"ws.you@hos21.com",user_name:"유원수",total_issued:0,total_used:0,last_signed_in:"2025-07-15"},
+  {company_name:"HMM 해상",b2b_email:"hahafr@hanmail.net",user_name:"해상1",total_issued:150000,total_used:347000,last_signed_in:"2026-03-04"},
+  {company_name:"HMM 해상",b2b_email:"wewec_11@hanmail.net",user_name:"해상2",total_issued:0,total_used:0,last_signed_in:"2026-03-23"},
+  {company_name:"HMM 해상",b2b_email:"happiestmail@naver.com",user_name:"해상3",total_issued:0,total_used:0,last_signed_in:"2026-03-23"},
+];
+
+// ── 쿠폰 사용자 (활성 3개사) ──
+const couponUsers = [
+  {company_name:"신용보증기금",b2b_email:"jy.choi@kodit.co.kr",user_name:"최자란",coupon_issued:5,coupon_used:2,coupon_registered:1,last_signed_in:"2026-03-24"},
+  {company_name:"신용보증기금",b2b_email:"05thgml@kodit.co.kr",user_name:"신소희",coupon_issued:2,coupon_used:1,coupon_registered:1,last_signed_in:"2026-03-03"},
+  {company_name:"신용보증기금",b2b_email:"Goldlight@kodit.co.kr",user_name:"Goldlight",coupon_issued:1,coupon_used:0,coupon_registered:1,last_signed_in:"2026-01-07"},
+  {company_name:"CJ 제휴사",b2b_email:"sukju.kim@cj.net",user_name:"김숙주",coupon_issued:2,coupon_used:1,coupon_registered:1,last_signed_in:"2026-03-16"},
+  {company_name:"CJ 제휴사",b2b_email:"jc.kim9@cj.net",user_name:"김JC",coupon_issued:1,coupon_used:0,coupon_registered:1,last_signed_in:"2026-03-07"},
+  {company_name:"CJ 제휴사",b2b_email:"hwaran.kim@cj.net",user_name:"김화란",coupon_issued:1,coupon_used:0,coupon_registered:1,last_signed_in:"2026-03-24"},
+  {company_name:"SK가스",b2b_email:"arnix3-jaranda@skgas.co.kr",user_name:"쿠로네",coupon_issued:1,coupon_used:0,coupon_registered:1,last_signed_in:"2026-02-26"},
+  {company_name:"SK가스",b2b_email:"jiyeon-park@skgas.co.kr",user_name:"박지연",coupon_issued:1,coupon_used:0,coupon_registered:1,last_signed_in:"2026-03-04"},
+  {company_name:"두산",b2b_email:"minzy.kim@hancomm.co.kr",user_name:"부모님",coupon_issued:9,coupon_used:4,coupon_registered:0,last_signed_in:"2025-10-07"},
+  {company_name:"두산",b2b_email:"jihye1.cha@doosan.com",user_name:"부모님",coupon_issued:5,coupon_used:3,coupon_registered:0,last_signed_in:"2026-03-03"},
+  {company_name:"두산",b2b_email:"yujin1.son@doosan.com",user_name:"부모님",coupon_issued:1,coupon_used:0,coupon_registered:0,last_signed_in:"2025-03-12"},
+  {company_name:"두산",b2b_email:"jaeshik.oum@doosan.com",user_name:"부모님",coupon_issued:1,coupon_used:0,coupon_registered:0,last_signed_in:"2025-03-12"},
+  {company_name:"두산",b2b_email:"shs0960@naver.com",user_name:"부모님",coupon_issued:1,coupon_used:0,coupon_registered:0,last_signed_in:"2025-06-25"},
+];
+// 신보 나머지 74명, CJ 나머지 16명은 모두 쿠폰 1장 등록/미사용 패턴 (요약 카드에 반영)
+const couponCompanySummary = {
+  "신용보증기금": {total:77, issued:81, used:3, registered:76, coupon_name:"긴급돌봄 10% 할인"},
+  "CJ 제휴사": {total:19, issued:21, used:1, registered:19, coupon_name:"임직원 10% 할인"},
+  "SK가스": {total:4, issued:4, used:0, registered:4, coupon_name:"긴급돌봄 10% 할인"},
+  "두산": {total:5, issued:17, used:7, registered:0, coupon_name:"임직원 전용쿠폰 (2시간)"},
+};
+
+// ── 종료 예정 (통계 제외) ──
+const endingCompanies = [
+  {name:"한국백혈소아암협회",users:13,total_issued:27920000,total_used:0,last_issued:"2025-07-01",reason:"포인트 발급 중단 8개월",coupon_issued:0,coupon_used:0,coupon_name:"-"},
+  {name:"비대면바우처",users:10,total_issued:21766200,total_used:0,last_issued:"2024-05-13",reason:"포인트 발급 중단 1년 10개월",coupon_issued:0,coupon_used:0,coupon_name:"-"},
+];
+
+// ── 통합 배열 ──
+// 사용 캡핑: B2B 발급 이상 사용 불가 (일반 포인트 사용분 제외)
+const cappedPointUsers = pointUsers.map(u => ({
+  ...u,
+  total_used: u.total_issued > 0 ? Math.min(u.total_used, u.total_issued) : 0,
+  benefit_type: 'point'
+}));
+const allUsers = [
+  ...cappedPointUsers,
+  ...couponUsers.map(u => ({...u, benefit_type:'coupon', total_issued:0, total_used:0})),
+];
+
+function fmt(n) {
+  if (n >= 100000000) return (n/100000000).toFixed(1) + '억';
+  if (n >= 10000) return Math.round(n/10000).toLocaleString() + '만';
+  return n.toLocaleString();
+}
+function fmtFull(n) { return n.toLocaleString() + '원'; }
+function daysSince(d) { return Math.floor((new Date() - new Date(d)) / 86400000); }
+
+// ── KPI ──
+function renderKPI() {
+  const totalIssued = cappedPointUsers.reduce((s,u) => s+u.total_issued, 0);
+  const totalUsed = cappedPointUsers.reduce((s,u) => s+u.total_used, 0);
+  const usageRate = totalIssued > 0 ? (totalUsed/totalIssued*100) : 0;
+  const unusedPointUsers = cappedPointUsers.filter(u => u.total_issued > 0 && u.total_used === 0).length;
+  const couponTotal = Object.values(couponCompanySummary).reduce((s,c) => s+c.total, 0);
+  const couponUsedTotal = Object.values(couponCompanySummary).reduce((s,c) => s+c.used, 0);
+
+  document.getElementById('kpi-grid').innerHTML = `
+    <div class="kpi"><div class="label">활성 제휴사</div><div class="value">10</div><div class="sub">포인트 6 + 쿠폰 4</div></div>
+    <div class="kpi"><div class="label">등록 사용자</div><div class="value">${pointUsers.length + couponTotal}<span style="font-size:0.8rem;color:var(--text-muted)">명</span></div><div class="sub">포인트 ${pointUsers.length}명 + 쿠폰 ${couponTotal}명</div></div>
+    <div class="kpi danger"><div class="label">포인트 누적 발급</div><div class="value mono">${fmt(totalIssued)}</div><div class="sub">사용률 ${usageRate.toFixed(2)}%</div></div>
+    <div class="kpi danger"><div class="label">잠자는 포인트</div><div class="value mono">${fmt(totalIssued - totalUsed)}</div><div class="sub">미사용자 ${unusedPointUsers}명</div></div>
+    <div class="kpi purple"><div class="label">쿠폰 사용</div><div class="value mono">${couponUsedTotal}<span style="font-size:0.8rem">/${Object.values(couponCompanySummary).reduce((s,c)=>s+c.issued,0)}</span></div><div class="sub">실사용 ${couponUsedTotal}명 / 등록 ${couponTotal}명</div></div>
+  `;
+}
+
+// ── Insight ──
+function renderInsight() {
+  const topUser = cappedPointUsers.reduce((a,b) => a.total_issued > b.total_issued ? a : b);
+  document.getElementById('insight-cards').innerHTML = `
+    <div class="insight-card">
+      <h4><span style="color:var(--accent)">&#9679;</span> 포인트有 서비스 미이용</h4>
+      <div class="number">${cappedPointUsers.filter(u=>u.total_issued>0&&u.total_used===0).length}명</div>
+      <p>B2B 포인트를 발급받았지만 서비스를 한 번도 이용하지 않은 사용자입니다.</p>
+    </div>
+    <div class="insight-card">
+      <h4><span style="color:var(--purple)">&#9679;</span> 쿠폰 등록 후 미사용</h4>
+      <div class="number" style="color:var(--purple)">${couponTotal - Object.values(couponCompanySummary).reduce((s,c)=>s+c.used,0)}명</div>
+      <p>쿠폰을 발급받았지만 사용하지 않은 사용자. 신보(74명), CJ(18명), SK가스(4명), 두산(3명).</p>
+    </div>
+    <div class="insight-card">
+      <h4><span style="color:var(--info)">&#9679;</span> 최대 적체 금액</h4>
+      <div class="number">${fmt(topUser.total_issued)}</div>
+      <p>블리자드 ${topUser.user_name}님 — 1인당 최대 누적 발급액. 매월 50만원씩 발급되나 한 번도 사용한 적 없습니다.</p>
+    </div>
+  `;
+}
+const couponTotal = Object.values(couponCompanySummary).reduce((s,c) => s+c.total, 0);
+
+// ── 회사 카드 ──
+function renderCompanyCards() {
+  // 포인트 회사
+  const pMap = {};
+  cappedPointUsers.forEach(u => {
+    if (!pMap[u.company_name]) pMap[u.company_name] = {name:u.company_name,users:[],totalIssued:0,totalUsed:0};
+    pMap[u.company_name].users.push(u);
+    pMap[u.company_name].totalIssued += u.total_issued;
+    pMap[u.company_name].totalUsed += u.total_used;
+  });
+  const pointCompanies = Object.values(pMap).sort((a,b) => b.totalIssued - a.totalIssued);
+
+  const grid = document.getElementById('company-grid');
+  grid.innerHTML = pointCompanies.map(c => {
+    const usage = c.totalIssued > 0 ? (c.totalUsed / c.totalIssued * 100) : 0;
+    const unusedUsers = c.users.filter(u => u.total_issued > 0 && u.total_used === 0).length;
+    const barColor = usage < 1 ? 'var(--accent)' : usage < 30 ? 'var(--warning)' : 'var(--success)';
+    let pLabel, pCls;
+    if (c.totalIssued > 50000000) { pLabel='CRITICAL'; pCls='critical'; }
+    else if (c.totalIssued > 10000000) { pLabel='HIGH'; pCls='high'; }
+    else { pLabel='MEDIUM'; pCls='medium'; }
+    return `<div class="company-card">
+      <div class="priority-tag ${pCls}">${pLabel}</div>
+      <div class="company-header"><div class="company-name">${c.name}</div><div class="user-count">${c.users.length}명</div></div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-label">발급</div><div class="stat-value mono">${fmt(c.totalIssued)}</div></div>
+        <div class="stat"><div class="stat-label">사용</div><div class="stat-value mono" style="color:${c.totalUsed>0?'var(--success)':'var(--accent)'}">${fmt(c.totalUsed)}</div></div>
+        <div class="stat"><div class="stat-label">미사용자</div><div class="stat-value" style="color:var(--accent)">${unusedUsers}명</div></div>
+      </div>
+      <div class="usage-bar-bg"><div class="usage-bar" style="width:${Math.max(usage,0.5)}%;background:${barColor}"></div></div>
+      <div class="usage-label"><span>사용률 ${usage.toFixed(1)}%</span><span>잔액 ${fmt(c.totalIssued - c.totalUsed)}</span></div>
+    </div>`;
+  }).join('');
+
+  // 쿠폰 회사
+  const cGrid = document.getElementById('coupon-grid');
+  cGrid.innerHTML = Object.entries(couponCompanySummary).map(([name, c]) => {
+    const usageRate = c.issued > 0 ? (c.used / c.issued * 100) : 0;
+    return `<div class="company-card">
+      <div class="priority-tag coupon">쿠폰</div>
+      <div class="company-header"><div class="company-name">${name}</div><div class="user-count">${c.total}명</div></div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-label">쿠폰 발급</div><div class="stat-value mono" style="color:var(--purple)">${c.issued}장</div></div>
+        <div class="stat"><div class="stat-label">사용</div><div class="stat-value mono" style="color:${c.used>0?'var(--success)':'var(--accent)'}">${c.used}장</div></div>
+        <div class="stat"><div class="stat-label">등록(미사용)</div><div class="stat-value" style="color:var(--warning)">${c.registered - c.used}명</div></div>
+      </div>
+      <div class="usage-bar-bg"><div class="usage-bar" style="width:${Math.max(usageRate,0.5)}%;background:${c.used>0?'var(--success)':'var(--accent)'}"></div></div>
+      <div class="usage-label"><span>사용률 ${usageRate.toFixed(1)}%</span><span>${c.coupon_name}</span></div>
+    </div>`;
+  }).join('');
+
+  // 종료 예정
+  document.getElementById('ending-grid').innerHTML = endingCompanies.map(c =>
+    `<div class="company-card" style="border-style:dashed;opacity:.7">
+      <div class="priority-tag ending">종료예정</div>
+      <div class="company-header"><div class="company-name">${c.name}</div><div class="user-count">${c.users}명</div></div>
+      <div class="stats-row" style="grid-template-columns:1fr 1fr 1fr 1fr">
+        <div class="stat"><div class="stat-label">포인트 발급</div><div class="stat-value mono">${fmt(c.total_issued)}</div></div>
+        <div class="stat"><div class="stat-label">포인트 사용</div><div class="stat-value mono" style="color:var(--accent)">${fmt(c.total_used)}</div></div>
+        <div class="stat"><div class="stat-label">쿠폰</div><div class="stat-value mono" style="color:var(--purple)">${c.coupon_issued > 0 ? c.coupon_issued+'장' : '없음'}</div></div>
+        <div class="stat"><div class="stat-label">마지막 발급</div><div class="stat-value" style="font-size:0.75rem">${c.last_issued}</div></div>
+      </div>
+      <div style="font-size:0.75rem;color:var(--accent);margin-top:0.3rem">${c.reason}</div>
+    </div>`
+  ).join('');
+}
+
+// ── 사용자 테이블 ──
+let currentSort = {key:'total_issued', asc:false};
+function sortTable(key) {
+  if (currentSort.key === key) currentSort.asc = !currentSort.asc;
+  else { currentSort.key = key; currentSort.asc = false; }
+  filterUsers();
+}
+
+function filterUsers() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const compF = document.getElementById('filter-company').value;
+  const typeF = document.getElementById('filter-type').value;
+  const statF = document.getElementById('filter-status').value;
+
+  let data = allUsers.filter(u => {
+    if (search && !(u.user_name+u.b2b_email+u.company_name).toLowerCase().includes(search)) return false;
+    if (compF !== 'all' && u.company_name !== compF) return false;
+    if (typeF !== 'all' && u.benefit_type !== typeF) return false;
+    const days = daysSince(u.last_signed_in);
+    if (statF === 'has-unused') {
+      if (u.benefit_type === 'point' && !(u.total_issued > 0 && u.total_used === 0)) return false;
+      if (u.benefit_type === 'coupon' && !((u.coupon_registered||0) > 0 && (u.coupon_used||0) === 0)) return false;
+    }
+    if (statF === 'ghost' && days < 180) return false;
+    return true;
+  });
+
+  const sk = currentSort.key;
+  data.sort((a,b) => {
+    let va = sk === 'benefit_value' ? (a.benefit_type==='point'?a.total_issued:(a.coupon_issued||0)) : a[sk];
+    let vb = sk === 'benefit_value' ? (b.benefit_type==='point'?b.total_issued:(b.coupon_issued||0)) : b[sk];
+    if (typeof va === 'string') { va=(va||'').toLowerCase(); vb=(vb||'').toLowerCase(); }
+    if (va < vb) return currentSort.asc ? -1 : 1;
+    if (va > vb) return currentSort.asc ? 1 : -1;
+    return 0;
+  });
+
+  renderUserTable(data);
+}
+
+function renderUserTable(data) {
+  const tbody = document.getElementById('user-table-body');
+  tbody.innerHTML = data.map(u => {
+    const days = daysSince(u.last_signed_in);
+    let statusCls = 'active', statusLabel = '활성';
+    if (days > 180) { statusCls = 'ghost'; statusLabel = '유령'; }
+    else if (days > 30) { statusCls = 'dormant'; statusLabel = '휴면'; }
+
+    if (u.benefit_type === 'point') {
+      const balance = u.total_issued - u.total_used;
+      const usageRate = u.total_issued > 0 ? (u.total_used/u.total_issued*100).toFixed(1) : '-';
+      const isNeverUsed = u.total_issued > 0 && u.total_used === 0;
+      return `<tr class="${isNeverUsed ? 'never-used' : ''}">
+        <td>${u.company_name}</td>
+        <td class="mono" style="font-size:0.75rem">${u.b2b_email}</td>
+        <td>${u.user_name}</td>
+        <td><span style="font-size:0.7rem;padding:0.15rem 0.4rem;border-radius:4px;background:rgba(85,136,255,0.15);color:var(--info)">포인트</span></td>
+        <td style="text-align:right" class="mono">${u.total_issued > 0 ? fmtFull(u.total_issued) : '-'}</td>
+        <td style="text-align:right" class="mono">${u.total_used > 0 ? fmtFull(u.total_used) : '-'}</td>
+        <td style="text-align:right;color:${usageRate==='0.0'?'var(--accent)':usageRate==='-'?'var(--text-muted)':'var(--success)'}">${usageRate}%</td>
+        <td style="color:${days>180?'var(--accent)':days>30?'var(--warning)':'var(--text-muted)'}">${u.last_signed_in}</td>
+        <td><span class="status-dot ${statusCls}"></span>${statusLabel}</td>
+      </tr>`;
+    } else {
+      const cu = u.coupon_used||0, cr = u.coupon_registered||0, ci = u.coupon_issued||0;
+      return `<tr class="${cr > 0 && cu === 0 ? 'never-used' : ''}">
+        <td>${u.company_name}</td>
+        <td class="mono" style="font-size:0.75rem">${u.b2b_email}</td>
+        <td>${u.user_name}</td>
+        <td><span style="font-size:0.7rem;padding:0.15rem 0.4rem;border-radius:4px;background:rgba(168,85,247,0.15);color:var(--purple)">쿠폰</span></td>
+        <td style="text-align:right" class="mono">${ci}장 (등록 ${cr})</td>
+        <td style="text-align:right" class="mono">${cu > 0 ? cu+'장' : '-'}</td>
+        <td style="text-align:right;color:${cu>0?'var(--success)':'var(--accent)'}">${cu}/${ci}</td>
+        <td style="color:${days>180?'var(--accent)':days>30?'var(--warning)':'var(--text-muted)'}">${u.last_signed_in}</td>
+        <td><span class="status-dot ${statusCls}"></span>${statusLabel}</td>
+      </tr>`;
+    }
+  }).join('');
+}
+
+// ── 영업 액션 ──
+function renderActionTable() {
+  // Tier 1: 포인트 미사용 큰 금액
+  const sorted = cappedPointUsers.filter(u => u.total_issued > 0 && u.total_used === 0).sort((a,b) => b.total_issued - a.total_issued);
+  document.getElementById('action-table-body').innerHTML = sorted.slice(0, 30).map(u => {
+    const days = daysSince(u.last_signed_in);
+    let action = '포인트 보유 안내 + 사용 가이드 발송';
+    if (days > 365) action = '장기 미접속 — 계정 활성화 + 포인트 안내';
+    else if (days > 180) action = '재접촉 필요 — 포인트 만료 전 사용 유도';
+    return `<tr><td>${u.company_name}</td><td class="mono" style="font-size:0.75rem">${u.b2b_email}</td><td>${u.user_name}</td>
+      <td style="text-align:right;font-weight:700;color:var(--accent)" class="mono">${fmtFull(u.total_issued)}</td>
+      <td style="color:${days>180?'var(--accent)':days>30?'var(--warning)':'var(--text-muted)'}">${u.last_signed_in}</td>
+      <td style="font-size:0.78rem">${action}</td></tr>`;
+  }).join('');
+
+  // Tier 2: 쿠폰 미사용
+  const couponUnused = couponUsers.filter(u => (u.coupon_registered||0) > 0 && (u.coupon_used||0) === 0);
+  document.getElementById('coupon-action-body').innerHTML = couponUnused.map(u => {
+    return `<tr><td>${u.company_name}</td><td class="mono" style="font-size:0.75rem">${u.b2b_email}</td><td>${u.user_name}</td>
+      <td style="text-align:right;font-weight:700;color:var(--purple)" class="mono">${u.coupon_registered}장</td>
+      <td style="color:var(--text-muted)">${u.last_signed_in}</td>
+      <td style="font-size:0.78rem">쿠폰 사용 방법 안내 + 긴급돌봄 서비스 소개</td></tr>`;
+  }).join('');
+}
+
+// ── CSV ──
+function downloadCSV() {
+  const header = '회사,이름,이메일,혜택유형,발급/보유,사용,마지막로그인\n';
+  const rows = allUsers.map(u => {
+    if (u.benefit_type === 'point') return `${u.company_name},${u.user_name},${u.b2b_email},포인트,${u.total_issued},${u.total_used},${u.last_signed_in}`;
+    return `${u.company_name},${u.user_name},${u.b2b_email},쿠폰,${u.coupon_issued||0}장,${u.coupon_used||0}장,${u.last_signed_in}`;
+  }).join('\n');
+  const blob = new Blob(['\uFEFF'+header+rows], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'b2b_영업대시보드_20260327.csv'; a.click();
+}
+
+// ── 탭 ──
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  ['company','users','action'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===name ? '' : 'none';
+  });
+}
+
+// ── Init ──
+function initDashboard() {
+  const companies = [...new Set(allUsers.map(u=>u.company_name))].sort();
+  const sel = document.getElementById('filter-company');
+  sel.innerHTML = '<option value="">전체</option>';
+  companies.forEach(c => { sel.innerHTML += `<option value="${c}">${c}</option>`; });
+  renderKPI();
+  renderInsight();
+  renderCompanyCards();
+  filterUsers();
+  renderActionTable();
+}
+
+// API에서 최신 데이터 로드 시도, 실패 시 정적 폴백 사용
+(async function loadData() {
+  try {
+    const res = await fetch(API_URL, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    if (data.pointUsers && data.pointUsers.length > 0) {
+      pointUsers.length = 0;
+      data.pointUsers.forEach(u => pointUsers.push(u));
+    }
+    if (data.couponUsers && data.couponUsers.length > 0) {
+      couponUsers.length = 0;
+      data.couponUsers.forEach(u => couponUsers.push(u));
+    }
+    if (data.couponCompanySummary) {
+      Object.keys(couponCompanySummary).forEach(k => delete couponCompanySummary[k]);
+      Object.assign(couponCompanySummary, data.couponCompanySummary);
+    }
+    // 통합 배열 재구성
+    cappedPointUsers.length = 0;
+    pointUsers.map(u => ({
+      ...u,
+      total_used: u.total_issued > 0 ? Math.min(u.total_used, u.total_issued) : 0,
+      benefit_type: 'point'
+    })).forEach(u => cappedPointUsers.push(u));
+    allUsers.length = 0;
+    cappedPointUsers.forEach(u => allUsers.push(u));
+    couponUsers.map(u => ({...u, benefit_type:'coupon', total_issued:0, total_used:0})).forEach(u => allUsers.push(u));
+    document.querySelector('.header .date').textContent = '데이터 갱신: ' + data.updated_at.substring(0, 10);
+    console.log('API 데이터 로드 완료:', data.updated_at);
+  } catch (e) {
+    console.warn('API 로드 실패, 정적 데이터 사용:', e.message);
+    document.querySelector('.header .date').textContent = '정적 데이터 (API 연결 대기중)';
+  }
+  initDashboard();
+})();
+
+// ── 월별 사용량 차트 ──
+const monthlyData = {
+  labels: ['2025-04','2025-05','2025-06','2025-07','2025-08','2025-09','2025-10','2025-11','2025-12','2026-01','2026-02','2026-03'],
+  series: [
+    {name:'블리자드',color:'#ff3b5c',issued:[8500000,8550000,9000000,9000000,9898000,7500000,7500000,7500000,7500000,8000000,8000000,8000000],used:[7409500,7351000,8740000,7287000,7382000,6013000,5749000,5881500,5810000,6397000,5709500,6257000]},
+    {name:'HMM',color:'#5588ff',issued:[1350000,1350000,1350000,1350000,1350000,1500000,1500000,1500000,1500000,1500000,1500000,794000],used:[595500,506000,781500,1355500,1599000,1053500,739500,1919500,1839500,3070500,3379000,601000]},
+    {name:'코니바이에린',color:'#00cc88',issued:[1650000,900000,1050000,1050000,1050000,1050000,1200000,1200000,1200000,1200000,1200000,2100000],used:[452000,232000,326000,290500,292500,253500,541000,261000,111000,150000,135000,514000]},
+    {name:'HMM오션서비스',color:'#ffaa00',issued:[150000,150000,150000,150000,150000,150000,150000,150000,150000,150000,150000,450000],used:[0,0,0,0,0,0,0,0,0,0,0,61000]},
+    {name:'HMM 해상',color:'#a855f7',issued:[0,0,0,0,0,0,0,0,0,0,150000,0],used:[0,0,0,0,0,0,0,0,0,0,203000,0]},
+    {name:'블리자드 스튜디오',color:'#ff8855',issued:[500000,500000,500000,500000,500000,500000,500000,500000,500000,500000,500000,500000],used:[0,0,0,0,0,0,0,0,0,0,0,0]}
+  ]
+};
+
+// 범례 초기화
+(function() {
+  const legend = document.getElementById('chart-legend');
+  monthlyData.series.forEach(s => {
+    const label = document.createElement('label');
+    label.style.cssText = 'display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-muted);';
+    label.innerHTML = `<input type="checkbox" id="cb-${s.name}" checked style="accent-color:${s.color}"><span style="width:10px;height:3px;background:${s.color};border-radius:2px;display:inline-block"></span>${s.name}`;
+    label.querySelector('input').addEventListener('change', renderChart);
+    legend.appendChild(label);
+  });
+})();
+
+function renderChart() {
+  const canvas = document.getElementById('chart-canvas');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = 400 * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = '400px';
+  ctx.scale(dpr, dpr);
+  const W = rect.width, H = 400;
+
+  const pad = {top:20, right:30, bottom:50, left:55};
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top - pad.bottom;
+
+  // 체크된 회사만
+  const active = monthlyData.series.filter(s => {
+    const cb = document.getElementById('cb-'+s.name);
+    return cb ? cb.checked : true;
+  });
+
+  // 사용률 계산 (발급 0이면 null로 처리하여 라인 끊기)
+  const rates = active.map(s => ({
+    ...s,
+    rate: s.issued.map((iss, i) => iss > 0 ? Math.round(s.used[i] / iss * 100) : null)
+  }));
+
+  // Y축 최대값 (최소 100%, 넘으면 올림)
+  let maxVal = 100;
+  rates.forEach(s => {
+    s.rate.forEach(v => { if(v !== null && v > maxVal) maxVal = v; });
+  });
+  maxVal = Math.ceil(maxVal / 50) * 50;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // 100% 기준선
+  const y100 = pad.top + ch - (ch * 100 / maxVal);
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.setLineDash([4, 4]);
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.left, y100); ctx.lineTo(pad.left + cw, y100); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 그리드
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
+  const gridLines = 5;
+  for(let i = 0; i <= gridLines; i++) {
+    const y = pad.top + ch - (ch * i / gridLines);
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cw, y); ctx.stroke();
+    ctx.fillStyle = '#8888a0';
+    ctx.font = '11px JetBrains Mono, monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(Math.round(maxVal * i / gridLines) + '%', pad.left - 8, y + 4);
+  }
+
+  // X축 라벨
+  const labels = monthlyData.labels;
+  const stepX = cw / (labels.length - 1);
+  ctx.fillStyle = '#8888a0';
+  ctx.font = '11px JetBrains Mono, monospace';
+  ctx.textAlign = 'center';
+  labels.forEach((l, i) => {
+    const x = pad.left + i * stepX;
+    ctx.fillText(l.slice(2), x, H - pad.bottom + 20);
+  });
+
+  // 라인
+  rates.forEach(s => {
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
+    let drawing = false;
+    ctx.beginPath();
+    s.rate.forEach((v, i) => {
+      if(v === null) { drawing = false; return; }
+      const x = pad.left + i * stepX;
+      const y = pad.top + ch - (ch * v / maxVal);
+      if(!drawing) { ctx.moveTo(x, y); drawing = true; } else { ctx.lineTo(x, y); }
+    });
+    ctx.stroke();
+
+    // 포인트
+    s.rate.forEach((v, i) => {
+      if(v === null) return;
+      const x = pad.left + i * stepX;
+      const y = pad.top + ch - (ch * v / maxVal);
+      ctx.beginPath();
+      ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = s.color;
+      ctx.fill();
+    });
+  });
+
+  // 툴팁
+  canvas.onmousemove = function(e) {
+    const r = canvas.getBoundingClientRect();
+    const mx = e.clientX - r.left;
+    const idx = Math.round((mx - pad.left) / stepX);
+    if(idx < 0 || idx >= labels.length) { document.getElementById('chart-tooltip').style.display = 'none'; return; }
+    const tooltip = document.getElementById('chart-tooltip');
+    let html = `<div style="font-weight:700;margin-bottom:4px">${labels[idx]}</div>`;
+    rates.forEach(s => {
+      if(s.rate[idx] === null) return;
+      const iss = s.issued[idx], used = s.used[idx];
+      html += `<div style="display:flex;align-items:center;gap:6px;margin:2px 0"><span style="width:8px;height:8px;border-radius:50%;background:${s.color};display:inline-block"></span>${s.name}: <strong>${s.rate[idx]}%</strong> <span style="color:var(--text-muted);font-size:0.7rem">(${(used/10000).toLocaleString()}만/${(iss/10000).toLocaleString()}만)</span></div>`;
+    });
+    tooltip.innerHTML = html;
+    tooltip.style.display = 'block';
+    tooltip.style.left = Math.min(mx + 12, W - 220) + 'px';
+    tooltip.style.top = '20px';
+  };
+  canvas.onmouseleave = function() {
+    document.getElementById('chart-tooltip').style.display = 'none';
+  };
+}
+
+renderChart();
+window.addEventListener('resize', renderChart);
+</script>
+</body>
+</html>

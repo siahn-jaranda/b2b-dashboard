@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B2B 포인트 대시보드 — 리디자인 목업</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --surface-2: #1a1a28;
+  --surface-3: #22222f;
+  --border: #2a2a3a;
+  --border-light: #3a3a4a;
+  --text: #e8e8f0;
+  --text-muted: #8888a0;
+  --text-dim: #5a5a70;
+  --accent: #ff3b5c;
+  --accent-soft: rgba(255,59,92,0.12);
+  --warning: #ffaa00;
+  --warning-soft: rgba(255,170,0,0.12);
+  --success: #00cc88;
+  --success-soft: rgba(0,204,136,0.12);
+  --info: #5588ff;
+  --info-soft: rgba(85,136,255,0.12);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+.mono { font-family:'JetBrains Mono',monospace; }
+
+/* ── Header ── */
+.top-bar {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:20px 32px; border-bottom:1px solid var(--border);
+}
+.top-bar h1 { font-size:16px; font-weight:700; letter-spacing:-0.3px; }
+.top-bar h1 span { color:var(--accent); }
+.top-bar .meta { font-size:11px; color:var(--text-dim); }
+
+/* ── KPI strip (3개로 축소) ── */
+.kpi-strip {
+  display:grid; grid-template-columns:1fr 1fr 1fr;
+  border-bottom:1px solid var(--border);
+}
+.kpi-cell {
+  padding:24px 32px; border-right:1px solid var(--border);
+  position:relative;
+}
+.kpi-cell:last-child { border-right:none; }
+.kpi-cell .label { font-size:11px; color:var(--text-muted); letter-spacing:0.5px; margin-bottom:8px; }
+.kpi-cell .value { font-size:32px; font-weight:900; letter-spacing:-1px; }
+.kpi-cell .sub { font-size:11px; color:var(--text-dim); margin-top:6px; }
+.kpi-cell .bar-inline {
+  position:absolute; bottom:0; left:0; right:0; height:3px;
+  background:var(--surface-2);
+}
+.kpi-cell .bar-inline .fill { height:100%; border-radius:0 2px 2px 0; }
+
+/* ── Content ── */
+.content { padding:24px 32px; max-width:1280px; margin:0 auto; }
+
+/* ── 회사 버블맵 ── */
+.bubble-section { margin-bottom:32px; }
+.bubble-section .section-head {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:16px;
+}
+.bubble-section .section-head h2 { font-size:14px; font-weight:700; }
+.bubble-section .section-head .hint { font-size:11px; color:var(--text-dim); }
+
+.bubble-grid {
+  display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end;
+}
+.bubble {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  border-radius:12px; border:1px solid var(--border);
+  background:var(--surface); cursor:pointer;
+  transition:all .2s; position:relative; overflow:hidden;
+}
+.bubble:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.3); }
+.bubble .name { font-size:11px; font-weight:700; white-space:nowrap; }
+.bubble .amount { font-size:13px; font-weight:900; margin-top:2px; }
+.bubble .people { font-size:10px; color:var(--text-muted); margin-top:2px; }
+.bubble .usage-ring {
+  position:absolute; top:6px; right:6px;
+  width:20px; height:20px;
+}
+.bubble.no-issue {
+  border-style:dashed; border-color:var(--text-dim);
+  background:transparent;
+}
+.bubble.no-issue .amount { color:var(--text-dim); font-size:11px; }
+
+/* ── 테이블 ── */
+.table-section { margin-bottom:32px; }
+.table-section .section-head {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:12px;
+}
+.table-section .section-head h2 { font-size:14px; font-weight:700; }
+.filter-row {
+  display:flex; gap:8px; margin-bottom:12px;
+}
+.filter-row input, .filter-row select {
+  background:var(--surface-2); border:1px solid var(--border); color:var(--text);
+  padding:8px 12px; border-radius:8px; font-size:12px; font-family:'Noto Sans KR',sans-serif;
+}
+.filter-row input { flex:1; max-width:260px; }
+.filter-row input::placeholder { color:var(--text-dim); }
+
+.data-table { width:100%; border-collapse:collapse; }
+.data-table th {
+  text-align:left; font-size:10px; color:var(--text-dim);
+  text-transform:uppercase; letter-spacing:0.5px;
+  padding:8px 12px; border-bottom:1px solid var(--border);
+  position:sticky; top:0; background:var(--bg);
+}
+.data-table td {
+  padding:10px 12px; font-size:12px;
+  border-bottom:1px solid rgba(42,42,58,0.4);
+}
+.data-table tr:hover td { background:rgba(255,255,255,0.02); }
+.data-table tr.danger td { background:var(--accent-soft); }
+.data-table tr.danger td:first-child { box-shadow:inset 3px 0 0 var(--accent); }
+
+/* 인라인 바 차트 */
+.inline-bar {
+  display:flex; align-items:center; gap:8px;
+}
+.inline-bar .bar-track {
+  flex:1; height:6px; background:var(--surface-2); border-radius:3px; overflow:hidden;
+  min-width:60px;
+}
+.inline-bar .bar-fill { height:100%; border-radius:3px; }
+.inline-bar .bar-label { font-size:11px; white-space:nowrap; min-width:36px; text-align:right; }
+
+/* ── 칸반 ── */
+.kanban { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:32px; }
+.kanban-col {
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  overflow:hidden;
+}
+.kanban-col .col-header {
+  padding:12px 16px; border-bottom:1px solid var(--border);
+  display:flex; justify-content:space-between; align-items:center;
+}
+.kanban-col .col-header h3 { font-size:12px; font-weight:700; }
+.kanban-col .col-header .count {
+  font-size:10px; padding:2px 8px; border-radius:10px;
+  background:var(--surface-2); color:var(--text-muted);
+}
+.kanban-col .col-body { padding:8px; max-height:400px; overflow-y:auto; }
+.kanban-card {
+  background:var(--surface-2); border:1px solid var(--border);
+  border-radius:8px; padding:10px 12px; margin-bottom:6px;
+  font-size:11px; line-height:1.5; cursor:pointer;
+  transition:border-color .15s;
+}
+.kanban-card:hover { border-color:var(--text-dim); }
+.kanban-card .kc-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+.kanban-card .kc-name { font-weight:700; font-size:12px; }
+.kanban-card .kc-amount { font-weight:700; color:var(--accent); }
+.kanban-card .kc-company { color:var(--text-dim); font-size:10px; }
+.kanban-card .kc-action { color:var(--info); font-size:10px; margin-top:4px; }
+.kanban-card.tier2 .kc-amount { color:var(--warning); }
+
+/* ── Tag ── */
+.tag {
+  display:inline-block; font-size:9px; font-weight:700; padding:2px 6px;
+  border-radius:4px; letter-spacing:0.3px;
+}
+.tag.critical { background:var(--accent-soft); color:var(--accent); }
+.tag.high { background:var(--warning-soft); color:var(--warning); }
+.tag.medium { background:var(--info-soft); color:var(--info); }
+.tag.ghost { background:rgba(136,136,160,0.15); color:var(--text-muted); }
+.tag.success { background:var(--success-soft); color:var(--success); }
+
+/* ── Tabs ── */
+.tabs {
+  display:flex; gap:0; margin-bottom:24px; border-bottom:1px solid var(--border);
+}
+.tab-btn {
+  padding:10px 20px; cursor:pointer; font-size:12px; font-weight:500;
+  color:var(--text-muted); border-bottom:2px solid transparent;
+  transition:all .15s; background:none; border-top:none; border-left:none; border-right:none;
+  font-family:'Noto Sans KR',sans-serif;
+}
+.tab-btn:hover { color:var(--text); }
+.tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; animation:fadeIn .2s; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+
+/* CSV button */
+.btn-csv {
+  background:var(--surface-2); border:1px solid var(--border); color:var(--text-muted);
+  padding:6px 14px; border-radius:8px; font-size:11px; cursor:pointer;
+  font-family:'Noto Sans KR',sans-serif; transition:all .15s;
+}
+.btn-csv:hover { border-color:var(--text-dim); color:var(--text); }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>B2B <span>포인트</span> 영업 대시보드</h1>
+  <div class="meta">2026.03.27 기준 · Read Replica</div>
+</div>
+
+<!-- KPI: 3개로 축소, 핵심만 -->
+<div class="kpi-strip">
+  <div class="kpi-cell">
+    <div class="label">누적 발급</div>
+    <div class="value mono">5.97<span style="font-size:14px;color:var(--text-muted)">억</span></div>
+    <div class="sub">15개사 · 224명 등록</div>
+    <div class="bar-inline"><div class="fill" style="width:100%;background:var(--accent)"></div></div>
+  </div>
+  <div class="kpi-cell">
+    <div class="label">사용률</div>
+    <div class="value mono" style="color:var(--accent)">0.39<span style="font-size:14px">%</span></div>
+    <div class="sub">실사용자 1명 (테스트 계정) · 231만원 사용</div>
+    <div class="bar-inline"><div class="fill" style="width:0.39%;background:var(--accent)"></div></div>
+  </div>
+  <div class="kpi-cell">
+    <div class="label">잠자는 포인트</div>
+    <div class="value mono" style="color:var(--warning)">5.95<span style="font-size:14px;color:var(--text-muted)">억</span></div>
+    <div class="sub">97명 포인트有 미사용 · 6개사 미발급</div>
+    <div class="bar-inline"><div class="fill" style="width:99.6%;background:var(--warning)"></div></div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('overview')">회사 현황</button>
+  <button class="tab-btn" onclick="switchTab('users')">전체 사용자</button>
+  <button class="tab-btn" onclick="switchTab('action')">영업 액션</button>
+</div>
+
+<!-- Tab 1: 회사 현황 (버블맵) -->
+<div class="tab-panel active" id="panel-overview">
+  <div class="bubble-section">
+    <div class="section-head">
+      <h2>포인트 발급 회사</h2>
+      <div class="hint">크기 = 발급 금액 비례</div>
+    </div>
+    <div class="bubble-grid" id="bubble-grid"></div>
+  </div>
+
+  <div class="bubble-section">
+    <div class="section-head">
+      <h2>포인트 미발급 회사 <span class="tag high" style="margin-left:6px">발급 정책 확인 필요</span></h2>
+    </div>
+    <div class="bubble-grid" id="no-issue-grid"></div>
+  </div>
+</div>
+
+<!-- Tab 2: 전체 사용자 -->
+<div class="tab-panel" id="panel-users">
+  <div class="filter-row">
+    <input type="text" id="search" placeholder="이름, 이메일, 회사명 검색..." oninput="renderTable()">
+    <select id="companyFilter" onchange="renderTable()"><option value="">전체 회사</option></select>
+    <select id="statusFilter" onchange="renderTable()">
+      <option value="">전체 상태</option>
+      <option value="unused">포인트有 미사용</option>
+      <option value="ghost">유령 (6개월+)</option>
+    </select>
+    <button class="btn-csv" onclick="downloadCSV()">CSV 다운로드</button>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>회사</th><th>이름</th><th>이메일</th>
+          <th style="text-align:right">발급</th>
+          <th>사용 비율</th>
+          <th>마지막 로그인</th>
+          <th>상태</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Tab 3: 영업 액션 (칸반) -->
+<div class="tab-panel" id="panel-action">
+  <div class="kanban">
+    <div class="kanban-col">
+      <div class="col-header"><h3>할 일</h3><div class="count" id="cnt-todo">0</div></div>
+      <div class="col-body" id="kanban-todo"></div>
+    </div>
+    <div class="kanban-col">
+      <div class="col-header"><h3>진행 중</h3><div class="count">0</div></div>
+      <div class="col-body"><div style="text-align:center;padding:32px;color:var(--text-dim);font-size:11px">아직 진행 중인 액션이 없습니다</div></div>
+    </div>
+    <div class="kanban-col">
+      <div class="col-header"><h3>완료</h3><div class="count">0</div></div>
+      <div class="col-body"><div style="text-align:center;padding:32px;color:var(--text-dim);font-size:11px">완료된 액션이 없습니다</div></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const users = [
+  {company_name:"블리자드",b2b_email:"byungwoo.kwon@blizzard.com",user_name:"권병우",total_issued:42000000,total_used:0,last_signed_in:"2026-02-04"},
+  {company_name:"블리자드",b2b_email:"claire.pak@blizzard.com",user_name:"박소연",total_issued:35600000,total_used:0,last_signed_in:"2026-03-16"},
+  {company_name:"블리자드",b2b_email:"yoora.oh@blizzard.com",user_name:"오유라",total_issued:35400000,total_used:0,last_signed_in:"2026-03-16"},
+  {company_name:"블리자드",b2b_email:"kyueun.lee@blizzard.com",user_name:"이규은",total_issued:32046000,total_used:0,last_signed_in:"2025-08-10"},
+  {company_name:"블리자드",b2b_email:"bohkim@blizzard.com",user_name:"김보희",total_issued:29050000,total_used:0,last_signed_in:"2026-03-23"},
+  {company_name:"블리자드",b2b_email:"dorothy.kang@blizzard.com",user_name:"강경숙",total_issued:23000000,total_used:0,last_signed_in:"2026-01-26"},
+  {company_name:"HMM",b2b_email:"ej.heo@hmm21.com",user_name:"허은정",total_issued:4124000,total_used:0,last_signed_in:"2026-03-20"},
+  {company_name:"HMM",b2b_email:"nowani@jaranda.kr",user_name:"테스트",total_issued:8390000,total_used:2316000,last_signed_in:"2024-09-27"},
+  {company_name:"코니바이에린",b2b_email:"erang@konnybaby.com",user_name:"에랑",total_issued:7800000,total_used:0,last_signed_in:"2026-01-14"},
+  {company_name:"코니바이에린",b2b_email:"hanah@konnybaby.com",user_name:"하나",total_issued:4050000,total_used:0,last_signed_in:"2025-07-29"},
+  {company_name:"한국백혈소아암협회",b2b_email:"mini0315@nate.com",user_name:"미니",total_issued:5400000,total_used:0,last_signed_in:"2025-08-23"},
+  {company_name:"비대면바우처",b2b_email:"icando333@naver.com",user_name:"바우처1",total_issued:4000000,total_used:0,last_signed_in:"2026-02-07"},
+  {company_name:"판다 미디어",b2b_email:"sammy@pandamedia.eu",user_name:"양지원",total_issued:4465200,total_used:0,last_signed_in:"2026-03-24"},
+  {company_name:"HMM오션서비스",b2b_email:"sehoun.yim@hos21.com",user_name:"임세훈",total_issued:5250000,total_used:0,last_signed_in:"2026-03-11"},
+  {company_name:"HMM 해상",b2b_email:"hahafr@hanmail.net",user_name:"해상1",total_issued:300000,total_used:0,last_signed_in:"2026-03-03"},
+  {company_name:"블리자드 스튜디오",b2b_email:"sunjung@blizzard.com",user_name:"선정",total_issued:10500000,total_used:0,last_signed_in:"2024-07-15"},
+];
+
+const noPointCompanies = [
+  {name:"신용보증기금",users:77},{name:"두산",users:23},{name:"CJ 제휴사",users:19},
+  {name:"이노션",users:6},{name:"SK가스",users:4},{name:"로지스올",users:3},
+];
+
+const companyTotals = {};
+users.forEach(u => {
+  if (!companyTotals[u.company_name]) companyTotals[u.company_name] = {issued:0,used:0,count:0,unused:0};
+  companyTotals[u.company_name].issued += u.total_issued;
+  companyTotals[u.company_name].used += u.total_used;
+  companyTotals[u.company_name].count++;
+  if (u.total_issued > 0 && u.total_used === 0) companyTotals[u.company_name].unused++;
+});
+
+function fmt(n) {
+  if (n >= 100000000) return (n/100000000).toFixed(1)+'억';
+  if (n >= 10000) return Math.round(n/10000).toLocaleString()+'만';
+  return n.toLocaleString();
+}
+
+// ── 버블맵 ──
+function renderBubbles() {
+  const grid = document.getElementById('bubble-grid');
+  const companies = Object.entries(companyTotals).sort((a,b) => b[1].issued - a[1].issued);
+  const maxIssued = companies[0][1].issued;
+
+  grid.innerHTML = companies.map(([name, d]) => {
+    const scale = Math.max(Math.sqrt(d.issued / maxIssued), 0.35);
+    const w = Math.round(90 + scale * 160);
+    const h = Math.round(70 + scale * 60);
+    const usage = d.issued > 0 ? (d.used/d.issued*100) : 0;
+    const color = d.issued > 50000000 ? 'var(--accent)' : d.issued > 10000000 ? 'var(--warning)' : 'var(--info)';
+    return `<div class="bubble" style="width:${w}px;height:${h}px;border-color:${color}22">
+      <div class="name">${name}</div>
+      <div class="amount mono" style="color:${color}">${fmt(d.issued)}</div>
+      <div class="people">${d.count}명 · 미사용 ${d.unused}</div>
+    </div>`;
+  }).join('');
+
+  const noGrid = document.getElementById('no-issue-grid');
+  noGrid.innerHTML = noPointCompanies.map(c =>
+    `<div class="bubble no-issue" style="width:${Math.max(80, c.users*2.5+60)}px;height:70px">
+      <div class="name">${c.name}</div>
+      <div class="amount">${c.users}명 등록</div>
+    </div>`
+  ).join('');
+}
+
+// ── 테이블 (인라인 바 차트 포함) ──
+function renderTable() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const compF = document.getElementById('companyFilter').value;
+  const statF = document.getElementById('statusFilter').value;
+  const tbody = document.getElementById('tbody');
+
+  const filtered = users.filter(u => {
+    if (search && !(u.user_name+u.b2b_email+u.company_name).toLowerCase().includes(search)) return false;
+    if (compF && u.company_name !== compF) return false;
+    const days = Math.floor((new Date('2026-03-27') - new Date(u.last_signed_in))/86400000);
+    if (statF === 'unused' && !(u.total_issued > 0 && u.total_used === 0)) return false;
+    if (statF === 'ghost' && days < 180) return false;
+    return true;
+  });
+
+  tbody.innerHTML = filtered.map(u => {
+    const usage = u.total_issued > 0 ? (u.total_used/u.total_issued*100) : 0;
+    const days = Math.floor((new Date('2026-03-27') - new Date(u.last_signed_in))/86400000);
+    const isDanger = u.total_issued > 0 && u.total_used === 0;
+    const barColor = usage < 1 ? 'var(--accent)' : usage < 30 ? 'var(--warning)' : 'var(--success)';
+    let tag = '<span class="tag success">활성</span>';
+    if (days > 180) tag = '<span class="tag critical">유령</span>';
+    else if (days > 30) tag = '<span class="tag high">휴면</span>';
+
+    return `<tr class="${isDanger?'danger':''}">
+      <td style="font-size:11px">${u.company_name}</td>
+      <td style="font-weight:600">${u.user_name}</td>
+      <td class="mono" style="font-size:10px;color:var(--text-muted)">${u.b2b_email}</td>
+      <td style="text-align:right" class="mono">${fmt(u.total_issued)}</td>
+      <td><div class="inline-bar">
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.max(usage,0.5)}%;background:${barColor}"></div></div>
+        <div class="bar-label mono" style="color:${barColor}">${usage.toFixed(1)}%</div>
+      </div></td>
+      <td style="font-size:11px;color:${days>180?'var(--accent)':days>30?'var(--warning)':'var(--text-muted)'}">${u.last_signed_in} <span style="color:var(--text-dim);font-size:10px">(${days}일전)</span></td>
+      <td>${tag}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── 칸반 ──
+function renderKanban() {
+  const sorted = users.filter(u => u.total_issued > 0 && u.total_used === 0).sort((a,b) => b.total_issued - a.total_issued);
+  const todo = document.getElementById('kanban-todo');
+
+  const cards = sorted.slice(0,15).map(u => {
+    const days = Math.floor((new Date('2026-03-27') - new Date(u.last_signed_in))/86400000);
+    let action = '포인트 보유 안내 + 사용 가이드 발송';
+    if (days > 180) action = '재접촉 필요 — 계정 활성화 확인';
+    return `<div class="kanban-card">
+      <div class="kc-top">
+        <span class="kc-name">${u.user_name}</span>
+        <span class="kc-amount mono">${fmt(u.total_issued)}</span>
+      </div>
+      <div class="kc-company">${u.company_name} · ${u.b2b_email}</div>
+      <div class="kc-action">${action}</div>
+    </div>`;
+  }).join('');
+
+  const tier2Cards = noPointCompanies.slice(0,3).map(c =>
+    `<div class="kanban-card tier2">
+      <div class="kc-top">
+        <span class="kc-name">${c.name}</span>
+        <span class="kc-amount mono">${c.users}명</span>
+      </div>
+      <div class="kc-action">포인트 발급 정책 점검 · 담당자 연락</div>
+    </div>`
+  ).join('');
+
+  todo.innerHTML = cards + tier2Cards;
+  document.getElementById('cnt-todo').textContent = sorted.slice(0,15).length + Math.min(noPointCompanies.length,3);
+}
+
+// ── 탭 전환 ──
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+// ── CSV ──
+function downloadCSV() {
+  const header = '회사,이름,이메일,발급액,사용액,잔액,사용률,마지막로그인\n';
+  const rows = users.map(u => {
+    const balance = u.total_issued - u.total_used;
+    const usage = u.total_issued > 0 ? (u.total_used/u.total_issued*100).toFixed(1)+'%' : '-';
+    return `${u.company_name},${u.user_name},${u.b2b_email},${u.total_issued},${u.total_used},${balance},${usage},${u.last_signed_in}`;
+  }).join('\n');
+  const blob = new Blob(['\uFEFF'+header+rows], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'b2b_포인트_현황.csv'; a.click();
+}
+
+// ── Init ──
+const sel = document.getElementById('companyFilter');
+[...new Set(users.map(u=>u.company_name))].sort().forEach(c => {
+  sel.innerHTML += `<option value="${c}">${c}</option>`;
+});
+
+renderBubbles();
+renderTable();
+renderKanban();
+</script>
+</body>
+</html>
